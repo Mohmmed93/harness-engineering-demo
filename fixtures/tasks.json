@@ -1,0 +1,1 @@
+[{"id":"synthetic-filter-001","name":"Search must preserve status and priority filters","description":"Select Open and High, search report, then clear search. Both filters must remain selected. If already correct, report that it cannot be reproduced; do not invent a fix.","list":{"id":"901521438487"},"status":{"type":"open"}}]
