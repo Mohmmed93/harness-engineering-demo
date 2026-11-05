@@ -1,0 +1,97 @@
+name: Deploy and verify Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Keep deployment and its verification together; never cancel a deployment midway.
+concurrency:
+  group: pages-deployment
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:harness
+      - run: npx playwright install --with-deps chromium
+      - run: npm run verify
+      - run: node scripts/deployment.mjs stamp
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pre-deployment-evidence
+          path: |
+            playwright-report/
+            test-results/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy tested artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SMOKE_BASE_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Wait for expected deployed commit
+        run: node scripts/deployment.mjs check
+      - name: Exercise deployed user journeys
+        run: npm test
+      - name: Confirm commit remained stable during checks
+        run: node scripts/deployment.mjs check
+      - name: Record deployment evidence
+        if: always()
+        env:
+          CHECK_RESULT: ${{ job.status }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; fs.writeFileSync("deployment-evidence.json", JSON.stringify({sha:process.env.GITHUB_SHA,url:process.env.SMOKE_BASE_URL,result:process.env.CHECK_RESULT,runId:process.env.GITHUB_RUN_ID},null,2));'
+          echo "Deployment checks: $CHECK_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: $SMOKE_BASE_URL" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployed-smoke-evidence
+          path: |
+            deployment-evidence.json
+            playwright-report/
+            test-results/
+          retention-days: 7
