@@ -91,10 +91,7 @@ function App() {
   const [failure, setFailure] = useState(false);
   const [message, setMessage] = useState("");
   const ticket = tickets.find((t) => t.id === selected)!;
-  // CONTROLLED DEMO BUG: normalization incorrectly depends on the hosting path.
-  // Root-hosted checks pass; the Pages subpath exposes the whitespace regression.
-  const normalizedQuery =
-    window.location.pathname === "/" ? query.trim() : query;
+  const normalizedQuery = query.trim();
   const visible = tickets.filter(
     (t) =>
       (status === "All statuses" || t.status === status) &&
