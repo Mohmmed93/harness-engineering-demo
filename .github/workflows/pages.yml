@@ -72,17 +72,25 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Wait for expected deployed commit
+        id: identity_before
         run: node scripts/deployment.mjs check
       - name: Exercise deployed user journeys
-        run: npm test
+        id: journeys
+        run: npm test -- --reporter=list,html,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-results.json
       - name: Confirm commit remained stable during checks
+        id: identity_after
+        if: always() && steps.identity_before.outcome == 'success'
         run: node scripts/deployment.mjs check
       - name: Record deployment evidence
         if: always()
         env:
           CHECK_RESULT: ${{ job.status }}
+          IDENTITY_BEFORE: ${{ steps.identity_before.outcome }}
+          IDENTITY_AFTER: ${{ steps.identity_after.outcome }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; fs.writeFileSync("deployment-evidence.json", JSON.stringify({sha:process.env.GITHUB_SHA,url:process.env.SMOKE_BASE_URL,result:process.env.CHECK_RESULT,runId:process.env.GITHUB_RUN_ID},null,2));'
+          node --input-type=module -e 'import fs from "node:fs"; fs.writeFileSync("deployment-evidence.json", JSON.stringify({sha:process.env.GITHUB_SHA,url:process.env.SMOKE_BASE_URL,result:process.env.CHECK_RESULT,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,identityBefore:process.env.IDENTITY_BEFORE,identityAfter:process.env.IDENTITY_AFTER},null,2));'
           echo "Deployment checks: $CHECK_RESULT" >> "$GITHUB_STEP_SUMMARY"
           echo "Commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "URL: $SMOKE_BASE_URL" >> "$GITHUB_STEP_SUMMARY"
@@ -92,6 +100,23 @@ jobs:
           name: deployed-smoke-evidence
           path: |
             deployment-evidence.json
+            playwright-results.json
             playwright-report/
             test-results/
           retention-days: 7
+
+  report_failure:
+    needs: [deploy, smoke]
+    if: always() && needs.smoke.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: deployed-smoke-evidence
+          path: incident-evidence
+      - name: Create or update the demo ClickUp incident
+        env:
+          CLICKUP_TOKEN: ${{ secrets.CLICKUP_TOKEN }}
+        run: python3 harness/incidents.py --evidence incident-evidence/deployment-evidence.json --report incident-evidence/playwright-results.json --send
