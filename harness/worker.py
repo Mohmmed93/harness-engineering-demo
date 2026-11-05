@@ -66,7 +66,10 @@ def transition(db, job, state, detail=''):
 
 def hold_incomplete(db):
     for row in db.execute("SELECT id,payload FROM jobs WHERE state='queued'").fetchall():
-        if not json.loads(row['payload']).get('description', '').strip():
+        description = json.loads(row['payload']).get('description', '')
+        if 'HARNESS_INCIDENT_TRIAGE' in description:
+            transition(db, row['id'], 'needs_input', 'Smoke incident needs confirmed reproduction and operator triage')
+        elif not description.strip():
             transition(db, row['id'], 'needs_input', 'Task needs reproduction steps and expected behavior before agent execution')
 
 

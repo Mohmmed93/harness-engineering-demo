@@ -26,6 +26,11 @@ class QueueTests(unittest.TestCase):
         w.hold_incomplete(self.db)
         self.assertIsNone(w.claim(self.db))
         self.assertEqual(self.db.execute('SELECT state FROM jobs').fetchone()[0],'needs_input')
+    def test_incident_held_despite_nonempty_description(self):
+        self.task['description']='HARNESS_INCIDENT_TRIAGE\nFailure needs investigation'
+        w.enqueue(self.db,self.task)
+        w.hold_incomplete(self.db)
+        self.assertIsNone(w.claim(self.db))
     def test_wrong_list_rejected(self):
         self.task['list']['id']='another-list'
         with self.assertRaises(ValueError): w.enqueue(self.db,self.task)

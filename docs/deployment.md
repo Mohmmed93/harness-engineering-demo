@@ -10,7 +10,7 @@ In repository Settings → Pages, select **GitHub Actions** as the build/deploym
 
 `deployment.json` identifies the artifact's commit. The smoke job checks it before and after exercising the deployed app. A missing or different SHA fails the job. It waits with bounded retries for Pages propagation. Workflow concurrency keeps our deployment and smoke steps together; changes made outside this workflow can still interfere and require investigation.
 
-The workflow run contains build evidence and deployed browser reports/traces. A successful Pages deployment is not the same as a successful smoke job: check all three jobs. Failure does not automatically roll back the site, create a ClickUp task, or dispatch a repair yet. Those are the next milestone. Do not close a task on merge alone.
+The workflow run contains build evidence and deployed browser reports/traces. A successful Pages deployment is not the same as a successful smoke job: check all three jobs. Failed deployed smoke checks create or update a ClickUp incident when the CLICKUP_TOKEN Actions secret is configured. They do not automatically roll back or dispatch a repair. See [incident reporting](incidents.md). Do not close a task on merge alone.
 
 The deployed app contains only synthetic data held in browser memory. Smoke tests are safe to repeat against this demo; that does not imply they are safe for a future app backed by production data. The tests cover five selected journeys, not the entire application.
 
