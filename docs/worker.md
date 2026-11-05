@@ -54,3 +54,9 @@ Recovery holds interrupted jobs for review. Explicit retry preserves previous ev
 After a real read-only ClickUp import and controlled agent run, add authenticated GitHub publication with idempotent branch/PR lookup, then ClickUp result comments. Bind acceptance evidence to the tested base and patch. Add deployment/scheduled triggers only after that flow works. No automatic merge is planned.
 
 References: https://developer.clickup.com/reference/gettasks and https://learn.chatgpt.com/docs/non-interactive-mode
+
+## Verified first task and harness lesson
+
+The first live task produced a one-line query-trimming repair. An independent browser check failed against the baseline on whitespace-only input, then passed against the repaired checkout along with the four existing checks. The originally suggested ` report ` query happened to match the fixture already; whitespace-only input was the confirmed failure.
+
+The initial test configuration could reuse a running development server. The worker now supplies HARNESS_VERIFY=1 and TEST_PORT=4176; Playwright refuses server reuse and Vite uses strictPort. A port conflict fails verification instead of silently testing another checkout. The independent first-run checks used a dedicated server on port 4175.

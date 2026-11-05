@@ -106,9 +106,9 @@ def child_env():
     return {k:os.environ[k] for k in keep if k in os.environ}
 
 
-def command(args, cwd, log, timeout=120, prompt=None):
+def command(args, cwd, log, timeout=120, prompt=None, extra_env=None):
     with open(log, 'w') as output:
-        process = subprocess.Popen(args,cwd=cwd,env=child_env(),stdin=subprocess.PIPE if prompt else subprocess.DEVNULL,
+        process = subprocess.Popen(args,cwd=cwd,env={**child_env(), **(extra_env or {})},stdin=subprocess.PIPE if prompt else subprocess.DEVNULL,
                                    stdout=output,stderr=subprocess.STDOUT,text=True,start_new_session=True)
         try:
             process.communicate(prompt,timeout=timeout)
@@ -173,7 +173,8 @@ def run_job(db, job, dry_run=False):
                 raise RuntimeError(f'Change outside permitted application files: {name}')
         transition(db,job['id'],'verifying')
         # Controller uses the original tracked scripts and checks; policy rejects edits to them.
-        command(['npm','run','verify'],checkout,folder/'verification.log',180)
+        command(['npm','run','verify'],checkout,folder/'verification.log',180,
+                extra_env={'HARNESS_VERIFY':'1','TEST_PORT':'4176'})
         command(['git','add','--','src'],checkout,folder/'stage.log')
         command(['git','diff','--cached','--binary'],checkout,folder/'changes.patch')
         (folder/'review.md').write_text(f"# Repair candidate\n\nTask: {task['id']}\n\nBase commit: {base}\n\nController verification passed. Inspect changes.patch, agent-summary.txt and verification.log.\n\nNot published, merged, or deployed. Reproduction claims still require human review.\n")
