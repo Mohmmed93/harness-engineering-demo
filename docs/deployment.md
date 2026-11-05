@@ -15,3 +15,5 @@ The workflow run contains build evidence and deployed browser reports/traces. A 
 The deployed app contains only synthetic data held in browser memory. Smoke tests are safe to repeat against this demo; that does not imply they are safe for a future app backed by production data. The tests cover five selected journeys, not the entire application.
 
 The manual `Deployment smoke check` workflow remains available for arbitrary demo URLs. It does not bind its results to a commit and is intended for exploratory checks. Use the deployment workflow for commit-correlated release evidence.
+
+Pre-deployment verification now includes `npm run test:subpath`, which mounts the built artifact at the real Pages path and reuses the unchanged browser tests. This check failed on the deliberate path-dependent search seed before repair. Its reports are under `playwright-report/subpath/` and `test-results/subpath/`.

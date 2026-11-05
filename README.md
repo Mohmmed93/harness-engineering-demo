@@ -22,7 +22,7 @@ Open the URL printed by Vite. Data is held in memory: reload or **Reset demo** r
 npm run verify
 ```
 
-Build runs TypeScript checks. Playwright covers combined filters, save failure/recovery, note isolation/reset, and empty results. Failure traces and screenshots are retained in ignored artifact directories. CI uploads these artifacts. Tests are Chromium-only initially.
+Build runs TypeScript checks. Verification runs browser checks at both the development root and the built artifact mounted at `/harness-engineering-demo/`; the second pass closes the hosting-path coverage gap found by the controlled failure exercise. Playwright covers combined filters, save failure/recovery, note isolation/reset, and empty results. Failure traces and screenshots are retained in ignored artifact directories. CI uploads these artifacts. Tests are Chromium-only initially.
 
 For an existing deployment:
 
