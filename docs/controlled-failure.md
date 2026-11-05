@@ -29,3 +29,7 @@ The minimal restoration makes query normalization unconditional: `query.trim()`.
 After restoration, add a pre-deployment browser check against a built artifact mounted at the Pages subpath. That should fail on this seed and pass on the fix, turning the discovered gap into durable harness coverage.
 
 Local exercise evidence is saved in the ignored `.runs/subpath-exercise/` directory. GitHub evidence is in the deployment run's artifacts, as described in `docs/incidents.md`.
+
+## Repair exercise result
+
+The deliberate release produced a real Pages smoke failure and a ClickUp application-check incident. The repair branch adds `npm run test:subpath` to `npm run verify`. It serves only `dist/` on an ephemeral loopback port at `/harness-engineering-demo/`, then runs the existing tests unchanged. This new pre-deployment gate reproduces the seed failure before agent repair. Root tests and subpath tests retain separate evidence folders.

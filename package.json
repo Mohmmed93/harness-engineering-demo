@@ -7,10 +7,11 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "test": "playwright test",
-    "verify": "npm run build && npm test",
+    "verify": "npm run build && npm test && npm run test:subpath",
     "preview": "vite preview --host 127.0.0.1",
     "test:harness": "python3 -m unittest discover -s harness_tests -v",
-    "worker": "python3 harness/worker.py"
+    "worker": "python3 harness/worker.py",
+    "test:subpath": "node scripts/test-subpath.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
