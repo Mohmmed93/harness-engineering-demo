@@ -37,7 +37,7 @@ The URL must include its trailing slash and any repository subpath. This runs br
 - Repository: https://github.com/Mohmmed93/harness-engineering-demo
 - ClickUp List: `901521438487`
 - Copy `.env.example` to `.env` when implementing the worker. Never put a ClickUp token in frontend variables or commit it.
-- ClickUp read-only intake and the local repair worker are implemented. See [worker guide](docs/worker.md). No live ClickUp connection has been verified yet.
+- ClickUp read-only intake and the local repair worker are implemented. See [worker guide](docs/worker.md). Read-only ClickUp intake has been verified against the demo List.
 - The worker runs one queued task only when explicitly invoked. No deployment, PR publication, or schedule is enabled.
 - GitHub Actions includes verification and a manually triggered deployed-URL smoke check. Automatic deployment hooks and incident creation follow after the local repair loop is proven.
 

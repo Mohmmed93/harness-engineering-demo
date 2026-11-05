@@ -21,6 +21,11 @@ class QueueTests(unittest.TestCase):
         self.assertFalse(w.enqueue(self.db,self.task))
         self.assertIsNotNone(w.claim(self.db))
         self.assertIsNone(w.claim(self.db))
+    def test_empty_description_held_before_execution(self):
+        w.enqueue(self.db,self.task)
+        w.hold_incomplete(self.db)
+        self.assertIsNone(w.claim(self.db))
+        self.assertEqual(self.db.execute('SELECT state FROM jobs').fetchone()[0],'needs_input')
     def test_wrong_list_rejected(self):
         self.task['list']['id']='another-list'
         with self.assertRaises(ValueError): w.enqueue(self.db,self.task)

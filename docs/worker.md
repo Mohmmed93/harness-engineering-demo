@@ -1,6 +1,6 @@
 # Local task worker
 
-This milestone implements ClickUp read-only intake, a persistent SQLite queue, dry runs, and a bounded Codex execution path that produces a local verified patch. It does not yet publish PRs, post ClickUp comments, deploy, or run on a schedule. Real agent execution remains unvalidated until a clean committed baseline and suitable task are available.
+This milestone implements ClickUp read-only intake, a persistent SQLite queue, dry runs, and a bounded Codex execution path that produces a local verified patch. It does not yet publish PRs, post ClickUp comments, deploy, or run on a schedule. Read-only ClickUp intake is verified. Real agent execution remains unvalidated until a suitable task is available.
 
 ## Credentials
 
@@ -26,7 +26,7 @@ python3 harness/worker.py poll
 python3 harness/worker.py status
 ```
 
-Poll is a single read-only import, not a daemon. It reads open tasks from the dedicated List with pagination and a 15-second timeout per request. Existing tasks are included on the first import. One job per task ID is intentional: status/comment changes cannot re-trigger a repair. Review imported tasks before running.
+Poll is a single read-only import, not a daemon. It reads open tasks from the dedicated List with pagination and a 15-second timeout per request. Existing tasks are included on the first import. One job per task ID is intentional: status/comment changes cannot re-trigger a repair. Tasks without descriptions are held as `needs_input`. Review imported tasks before running. After editing a held ClickUp task, explicitly retry it, then poll to refresh its payload before running.
 
 ## Run one job
 

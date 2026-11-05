@@ -52,13 +52,22 @@ def enqueue(db, task):
     # One run per task, regardless of status/comment changes. Requeue is explicit.
     cur = db.execute('INSERT OR IGNORE INTO jobs(task_id,payload,created,updated) VALUES(?,?,?,?)',
                      (payload['id'], json.dumps(payload), time.time(), time.time()))
+    inserted = cur.rowcount == 1
+    if not inserted:
+        db.execute("UPDATE jobs SET payload=? WHERE task_id=? AND state='queued'", (json.dumps(payload),payload['id']))
     db.commit()
-    return cur.rowcount == 1
+    return inserted
 
 
 def transition(db, job, state, detail=''):
     db.execute('UPDATE jobs SET state=?,detail=?,updated=? WHERE id=?', (state,detail,time.time(),job))
     db.commit()
+
+
+def hold_incomplete(db):
+    for row in db.execute("SELECT id,payload FROM jobs WHERE state='queued'").fetchall():
+        if not json.loads(row['payload']).get('description', '').strip():
+            transition(db, row['id'], 'needs_input', 'Task needs reproduction steps and expected behavior before agent execution')
 
 
 def claim(db):
@@ -192,6 +201,7 @@ def main():
         if args.action in ('import','poll'):
             tasks=json.loads(args.fixture.read_text()) if args.action=='import' and args.fixture else clickup_tasks()
             count=sum(enqueue(db,task) for task in tasks)
+            hold_incomplete(db)
             print(f'Queued {count} new tasks; duplicates skipped. No agent launched.')
         elif args.action=='status':
             for row in db.execute('SELECT id,task_id,state,attempts,detail FROM jobs ORDER BY id'):
@@ -214,6 +224,7 @@ def main():
                 git_output(['rev-parse','HEAD'],ROOT)
                 if git_output(['status','--porcelain'],ROOT):
                     raise ValueError('Commit the baseline first; working tree must be clean')
+            hold_incomplete(db)
             job=claim(db)
             if job:
                 print(f"Running job {job['id']}",flush=True)
