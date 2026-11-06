@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 
@@ -82,6 +82,14 @@ const seed: Ticket[] = [
   },
 ];
 function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarToggle = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 600px)");
+    const resetSidebar = () => setSidebarOpen(false);
+    mobile.addEventListener("change", resetSidebar);
+    return () => mobile.removeEventListener("change", resetSidebar);
+  }, []);
   const [tickets, setTickets] = useState<Ticket[]>(structuredClone(seed));
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All statuses");
@@ -121,8 +129,23 @@ function App() {
     setMessage("Demo data reset.");
   }
   return (
-    <div className="shell">
-      <aside className="sidebar">
+    <div className="shell" onKeyDown={(event) => {
+      if (event.key === "Escape" && sidebarOpen) {
+        setSidebarOpen(false);
+        sidebarToggle.current?.focus();
+      }
+    }}>
+      <button
+        ref={sidebarToggle}
+        className="sidebar-toggle"
+        type="button"
+        aria-expanded={sidebarOpen}
+        aria-controls="workspace-sidebar"
+        onClick={() => setSidebarOpen((open) => !open)}
+      >
+        {sidebarOpen ? "Close sidebar" : "Open sidebar"}
+      </button>
+      <aside id="workspace-sidebar" aria-label="Workspace" className={`sidebar${sidebarOpen ? " is-open" : ""}`}>
         <a className="brand" href="./">
           <span className="logo">S</span>signal<span className="dot">●</span>
         </a>
