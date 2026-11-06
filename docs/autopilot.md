@@ -59,3 +59,5 @@ python3 harness/autopilot.py retry --attempt 1
 ```
 
 A retry preserves evidence and still counts against task/daily limits. It runs on the next executable tick. The runner and manual worker share a process lock; do not run multiple hosts against the same List. This is a single-host demo, not a distributed queue. Task instructions are untrusted; the demo's sandbox and file gates are not a substitute for production isolation.
+
+If the agent sandbox blocks server/browser execution, the repair agent may use a deterministic source finding and must disclose the runtime limitation. The controller still runs browser verification before publication. An empty repair is held for operator review; it is not automatically treated as a request for more task details.

@@ -277,8 +277,8 @@ def process(db,job_id,data,api,policy):
             (worker.STATE/f'job-{claimed["id"]}').rename(repair)
         if state!='ready_for_review':
             post_once(api,data['id'],f'[harness-autopilot:{job_id}:no-fix]',
-                      'The repair attempt produced no verified patch. Please clarify the reproduction steps; see the local run evidence. No PR was opened.')
-            set_state(db,job_id,'waiting_for_input','No verified patch')
+                      'The repair attempt produced no verified patch. An operator must inspect the run evidence before retrying; this may be an execution limitation rather than missing task details. No PR was opened.')
+            set_state(db,job_id,'failed','No verified patch; operator review required')
             return
         # Eligibility must still hold before publishing code; never publish a now-withdrawn task.
         latest=api.request('/task/'+quote(data['id'],safe=''))

@@ -106,17 +106,17 @@ class PolicyTests(unittest.TestCase):
                 if '/custom_item' in path:return {'custom_items':[{'id':17,'name':'bug'}]}
                 if path.endswith('/comment'):return {'comments':inner.saved}
                 return deepcopy(self.task)
-        for decision in ('needs_input','ready'):
+        for decision in ('needs_input','ready','no_patch'):
             with self.subTest(decision=decision),tempfile.TemporaryDirectory() as d:
                 api=API();root=Path(d);db=a.connect(root/'a.db')
                 data=a.snapshot(self.task,[]);job=a.new_attempt(db,data)
-                result={'decision':decision,'summary':'Investigation',
+                result={'decision':'ready' if decision=='no_patch' else decision,'summary':'Investigation',
                         'questions':['Which filter?'] if decision=='needs_input' else [],'reproduction':'Open and search'}
                 def fake_repair(wdb,claimed,**kwargs):
                     self.assertEqual(kwargs['base_ref'],'a'*40)
                     self.assertEqual(kwargs['agent_timeout'],self.policy['repair_timeout_seconds'])
                     (a.worker.STATE/f'job-{claimed["id"]}').mkdir()
-                    a.worker.transition(wdb,claimed['id'],'ready_for_review')
+                    a.worker.transition(wdb,claimed['id'],'needs_input' if decision=='no_patch' else 'ready_for_review')
                 with patch.object(a,'STATE',root),patch.object(a.worker,'command'),patch.object(a.worker,'git_output',return_value='a'*40),patch.object(a,'inspect_task',return_value=result),patch.object(a.worker,'run_job',side_effect=fake_repair) as repair,patch.object(a,'GitHub'),patch.object(a,'publish_repair',return_value='https://github.com/example/pull/1') as publish:
                     a.process(db,job,data,api,self.policy)
                     state=db.execute('SELECT state FROM attempts').fetchone()[0]
@@ -124,6 +124,10 @@ class PolicyTests(unittest.TestCase):
                         self.assertEqual(state,'pr_open');repair.assert_called_once();publish.assert_called_once()
                         self.assertTrue((root/f'attempt-{job}'/'repair').is_dir())
                         self.assertIn('https://github.com/example/pull/1',api.saved[0]['comment_text'])
+                    elif decision=='no_patch':
+                        self.assertEqual(state,'failed');repair.assert_called_once();publish.assert_not_called()
+                        self.assertIn('operator must inspect',api.saved[0]['comment_text'])
+                        self.assertNotIn('Please clarify',api.saved[0]['comment_text'])
                     else:
                         self.assertEqual(state,'waiting_for_input');repair.assert_not_called();publish.assert_not_called()
                         self.assertIn('Which filter?',api.saved[0]['comment_text'])
