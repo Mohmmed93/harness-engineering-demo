@@ -143,7 +143,7 @@ independent acceptance checks after you exit. You have one bounded attempt.
 TICKET DATA (JSON):\n''' + json.dumps(task)
 
 
-def run_job(db, job, dry_run=False):
+def run_job(db, job, dry_run=False, base_ref=None, agent_timeout=None):
     folder = STATE / f"job-{job['id']}"
     folder.mkdir(exist_ok=True)
     task = json.loads(job['payload'])
@@ -153,7 +153,7 @@ def run_job(db, job, dry_run=False):
         return
     checkout = folder/'checkout'
     try:
-        base = git_output(['rev-parse','HEAD'],ROOT)
+        base = git_output(['rev-parse',base_ref or 'HEAD'],ROOT)
         (folder/'base-commit.txt').write_text(base+'\n')
         # Clone avoids sharing writable .git metadata with the source repository.
         command(['git','clone','--no-hardlinks','--no-checkout',str(ROOT),str(checkout)],ROOT,folder/'clone.log')
@@ -162,7 +162,7 @@ def run_job(db, job, dry_run=False):
         transition(db,job['id'],'implementing')
         command(['codex','exec','--ignore-user-config','--ignore-rules','--sandbox','workspace-write',
                  '--ephemeral','--json','-C',str(checkout),'-o',str(folder/'agent-summary.txt'),'-'],
-                checkout,folder/'agent.jsonl',int(os.environ.get('AGENT_TIMEOUT_SECONDS','600')),prompt_for(task))
+                checkout,folder/'agent.jsonl',agent_timeout or int(os.environ.get('AGENT_TIMEOUT_SECONDS','600')),prompt_for(task))
         if git_output(['rev-parse','HEAD'],checkout) != base:
             raise RuntimeError('Agent changed HEAD; refusing verification')
         changed = git_output(['diff','--name-only','HEAD'],checkout).splitlines()

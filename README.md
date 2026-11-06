@@ -1,6 +1,6 @@
 # Signal — Harness engineering demo
 
-A small React support dashboard used to practise evidence-based agent repairs. All customers and tickets are synthetic. This is a local-first scaffold, not yet an autonomous worker.
+A small React support dashboard used to practise evidence-based agent repairs. All customers and tickets are synthetic. The demo includes a policy-gated worker for ClickUp intake, investigation and verified repair PRs.
 
 ## Run
 
@@ -38,7 +38,7 @@ The URL must include its trailing slash and any repository subpath. This runs br
 - ClickUp List: `901521438487`
 - Copy `.env.example` to `.env` when implementing the worker. Never put a ClickUp token in frontend variables or commit it.
 - ClickUp read-only intake and the local repair worker are implemented. See [worker guide](docs/worker.md). Read-only ClickUp intake has been verified against the demo List.
-- The worker runs one queued task only when explicitly invoked. PR publication and schedules are not automated.
+- Automatic task selection, clarification comments and PR publication are available through the [autopilot runner](docs/autopilot.md). It is dry-run by default; continuous execution requires starting it on an awake host. No hosted service is provisioned.
 - GitHub Actions includes verification and Pages deployment with automatic deployed-URL smoke checks. Enable the Pages Actions source and merge the workflow to activate it; see [deployment guide](docs/deployment.md). Deployed smoke failures create/update ClickUp incidents once the incident-reporting workflow is merged and the CLICKUP_TOKEN Actions secret is configured; see [results and incident reporting](docs/incidents.md).
 
 See [implementation plan](docs/plan.md) and [example task](docs/example-task.md).

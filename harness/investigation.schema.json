@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision", "summary", "questions", "reproduction"],
+  "properties": {
+    "decision": {"type": "string", "enum": ["ready", "needs_input", "out_of_scope"]},
+    "summary": {"type": "string"},
+    "questions": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+    "reproduction": {"type": "string"}
+  }
+}

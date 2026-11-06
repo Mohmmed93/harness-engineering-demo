@@ -1,0 +1,16 @@
+{
+  "list_id": "901521438487",
+  "workspace_id": "90152403569",
+  "repository": "Mohmmed93/harness-engineering-demo",
+  "base_branch": "main",
+  "task_type": "bug",
+  "min_points": 0.5,
+  "max_points": 2,
+  "priorities": [3, 4],
+  "statuses": ["to do"],
+  "poll_seconds": 60,
+  "max_attempts_per_day": 2,
+  "max_attempts_per_task": 3,
+  "investigation_timeout_seconds": 180,
+  "repair_timeout_seconds": 600
+}
