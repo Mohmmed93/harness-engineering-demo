@@ -136,8 +136,12 @@ def prompt_for(task):
 Only modify src/ files. Do not change tests, configuration, dependencies, git metadata,
 worker code, or acceptance criteria. Do not commit, push, deploy, create PRs, contact
 external services, or read credentials. Do not delegate to other agents.
-Inspect and reproduce the issue before editing. If it is ambiguous or cannot be
-reproduced, make no changes and explain why. Record reproduction steps, cause,
+Inspect the issue and establish its cause before editing. Attempt runtime reproduction
+when the sandbox permits it. If server or browser execution is blocked by the
+environment, a deterministic finding in source can justify a bounded repair;
+record the blocked commands and do not claim runtime reproduction. Never bypass
+the sandbox. If the behavior is ambiguous or the cause cannot be established,
+make no changes and explain why. Record reproduction steps, cause,
 changes, and any verification limits in your final response. The controller runs
 independent acceptance checks after you exit. You have one bounded attempt.
 TICKET DATA (JSON):\n''' + json.dumps(task)
