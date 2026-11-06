@@ -43,6 +43,9 @@ button:disabled {
   display: flex;
   min-height: 100vh;
 }
+.sidebar-toggle {
+  display: none;
+}
 .sidebar {
   width: 230px;
   background: #143d31;
@@ -418,8 +421,28 @@ footer label {
   }
 }
 @media (max-width: 600px) {
+  .shell {
+    flex-direction: column;
+  }
+  .sidebar-toggle {
+    display: block;
+    align-self: flex-start;
+    margin: 16px 16px 0;
+  }
   .sidebar {
     display: none;
+    position: static;
+    width: 100%;
+    margin-top: 16px;
+  }
+  .sidebar.is-open {
+    display: flex;
+  }
+  .sidebar .workspace {
+    margin-top: 24px;
+  }
+  .sidebar-bottom {
+    margin-top: 24px;
   }
   main {
     margin: 0;
